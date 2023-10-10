@@ -4,6 +4,9 @@ import PackageDescription
 
 let package = Package(
     name: "PotatoGit",
+    platforms: [
+        .macOS("10.13"),
+    ],
     products: [
         .library(
             name: "PotatoGit",
