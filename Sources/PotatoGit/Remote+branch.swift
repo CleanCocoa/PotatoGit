@@ -2,9 +2,9 @@ import Clibgit2
 
 extension Remote {
     public func branch(
-        named name: String
+        named branchName: String
     ) -> Result<Branch?, PotatoGitError> {
-        let referenceName = "refs/remotes/" + name
+        let referenceName = "refs/remotes/\(self.name)/\(branchName)"
 
         var pointer: OpaquePointer? = nil
         defer { if let pointer { git_reference_free(pointer) } }
