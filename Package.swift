@@ -11,17 +11,16 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(
-            name: "Clibgit",
+            name: "Clibgit2",
             pkgConfig: "libgit2",
             providers: [
                 .brew(["libgit2"]),
                 .apt(["libgit2-dev"])
             ]
         ),
-
         .target(
             name: "PotatoGit",
-            dependencies: ["Clibgit"]),
+            dependencies: ["Clibgit2"]),
         .testTarget(
             name: "PotatoGitTests",
             dependencies: ["PotatoGit"]),
