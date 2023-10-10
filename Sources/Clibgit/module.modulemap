@@ -1,0 +1,5 @@
+module Clibgit [system] {
+  header "git2.h"
+  link "git2"
+  export *
+}

@@ -1,21 +1,27 @@
-// swift-tools-version: 5.9
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 5.7
 
 import PackageDescription
 
 let package = Package(
     name: "PotatoGit",
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "PotatoGit",
             targets: ["PotatoGit"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        .systemLibrary(
+            name: "Clibgit",
+            pkgConfig: "libgit2",
+            providers: [
+                .brew(["libgit2"]),
+                .apt(["libgit2-dev"])
+            ]
+        ),
+
         .target(
-            name: "PotatoGit"),
+            name: "PotatoGit",
+            dependencies: ["Clibgit"]),
         .testTarget(
             name: "PotatoGitTests",
             dependencies: ["PotatoGit"]),
