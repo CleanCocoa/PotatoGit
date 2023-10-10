@@ -2,7 +2,7 @@ import Foundation
 import Clibgit2
 
 public final class Repository {
-    fileprivate let repositoryPtr: OpaquePointer
+    internal let repositoryPtr: OpaquePointer
 
     internal init(repositoryPtr: OpaquePointer) {
         git_libgit2_init()
