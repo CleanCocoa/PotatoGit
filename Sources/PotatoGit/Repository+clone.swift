@@ -27,8 +27,7 @@ extension Repository {
             return .failure(.unexpected(gitError: result, pointOfFailure: "git_clone"))
         }
 
-        let repository = Repository(repositoryPtr: pointer!)
-        return Result.success(repository)
+        return .success(Repository(repositoryPtr: pointer!))
     }
 }
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import PotatoGit
+import PotatoGit
 
 final class RepositoryIntegrationTests: XCTestCase {
     let localURL = FileManager.default.temporaryDirectory
@@ -16,9 +16,11 @@ final class RepositoryIntegrationTests: XCTestCase {
 
     func testCloningPotatoGitRepository() throws {
         XCTAssertFalse(try Repository.exists(at: localURL).get())
+        XCTAssertThrowsError(try Repository.open(at: localURL).get())
 
         XCTAssertNoThrow(try Repository.clone(from: remoteURL, to: localURL).get())
 
         XCTAssertTrue(try Repository.exists(at: localURL).get())
+        XCTAssertNoThrow(try Repository.open(at: localURL).get())
     }
 }
