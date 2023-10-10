@@ -8,13 +8,13 @@ extension Repository {
         named name: String
     ) -> Result<Remote?, PotatoGitError> {
         var pointer: OpaquePointer? = nil
-        defer { git_remote_free(pointer) }
+        defer { if let pointer { git_remote_free(pointer) } }
 
         let result = git_remote_lookup(&pointer, self.repositoryPtr, name)
 
         switch result {
         case GIT_OK.rawValue:
-            return .success(Remote(pointer!))
+            return .success(Remote(remotePtr: pointer!, repository: self))
         case GIT_ENOTFOUND.rawValue:
             return .success(nil)
         default:
