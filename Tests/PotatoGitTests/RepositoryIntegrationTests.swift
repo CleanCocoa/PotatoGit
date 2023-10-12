@@ -35,7 +35,7 @@ final class RepositoryIntegrationTests: XCTestCase {
     func testForceCheckout() throws {
         let repository = try Repository.clone(from: remoteURL, to: localURL).get()
         let origin = try XCTUnwrap(repository.remote(named: "origin").get())
-        let mainBranch = try XCTUnwrap(origin.branch(named: "main").get())
+        let remoteMainBranch = try XCTUnwrap(origin.branch(named: "main").get())
 
         // Delete the LICENSE file to make the repo dirty.
         let licenseFileURL = localURL.appending(path: "LICENSE")
@@ -44,8 +44,7 @@ final class RepositoryIntegrationTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: licenseFileURL.path(percentEncoded: false)))
 
         try repository.checkout(
-            remote: origin,
-            branch: mainBranch,
+            branch: remoteMainBranch,
             strategy: .force
         )
 

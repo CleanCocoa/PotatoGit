@@ -3,6 +3,8 @@ import Clibgit2
 
 public enum PotatoGitError: Error {
     case unexpected(NSError)
+
+    case notFound(String)
 }
 
 extension PotatoGitError {
