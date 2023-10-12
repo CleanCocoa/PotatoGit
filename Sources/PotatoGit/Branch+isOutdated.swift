@@ -39,7 +39,7 @@ extension Branch {
         return try isOutdated(comparedAgainst: upstream)
     }
 
-    fileprivate func tip() throws -> OID? {
+    public func tip() throws -> OID? {
         var pointer: OpaquePointer?
         defer { if let pointer { git_object_free(pointer) } }
 

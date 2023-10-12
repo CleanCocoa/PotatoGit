@@ -1,10 +1,18 @@
+import Foundation
 import Clibgit2
 
 /// Git object identifier of commit, tree, blob, or tag.
 public struct OID {
-    public let oid: git_oid
+    internal let oid: git_oid
 
-    public init(_ oid: git_oid) {
+    public var string: String? {
+        withUnsafePointer(to: oid) { oidPtr in
+            git_oid_tostr_s(oidPtr)
+                .map { String(validatingUTF8: $0)! }
+        }
+    }
+
+    internal init(_ oid: git_oid) {
         self.oid = oid
     }
 }

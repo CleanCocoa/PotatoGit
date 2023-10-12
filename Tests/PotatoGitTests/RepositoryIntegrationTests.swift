@@ -77,9 +77,11 @@ final class RepositoryIntegrationTests: XCTestCase {
 
         XCTAssertFalse(try mainBranch.isOutdated())
 
-        try repository.checkout(commit: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
-        try mainBranch.reset(to: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
+        let commitish = "7dcff510c4a8e4aeda68212ac4cc776db998175e"
+        try repository.checkout(commit: commitish)
+        try mainBranch.reset(to: commitish)
 
         XCTAssertTrue(try mainBranch.isOutdated())
+        XCTAssertEqual(try mainBranch.tip()?.string, commitish)
     }
 }

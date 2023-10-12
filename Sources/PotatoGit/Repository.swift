@@ -13,7 +13,8 @@ public final class Repository {
         self.repositoryPtr = repositoryPtr
 
         let path = git_repository_workdir(repositoryPtr)
-        self.directoryURL = path.map { URL(fileURLWithPath: String(validatingUTF8: $0)!, isDirectory: true) }
+        self.directoryURL = path
+            .map { URL(fileURLWithPath: String(validatingUTF8: $0)!, isDirectory: true) }
     }
 
     deinit {
