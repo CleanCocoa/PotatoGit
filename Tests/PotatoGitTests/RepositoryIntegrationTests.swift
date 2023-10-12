@@ -51,4 +51,16 @@ final class RepositoryIntegrationTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: licenseFileURL.path(percentEncoded: false)),
                       "LICENSE file should have been restored")
     }
+
+    func testRemoteTrackingBranchIsOutdated() throws {
+        let repository = try Repository.clone(from: remoteURL, to: localURL).get()
+        let mainBranch = try XCTUnwrap(repository.branch(named: "main").get())
+
+        XCTAssertFalse(try mainBranch.isOutdated().get())
+
+        try repository.checkout(commit: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
+        try mainBranch.reset(to: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
+
+        XCTAssertTrue(try mainBranch.isOutdated().get())
+    }
 }
