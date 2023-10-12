@@ -26,3 +26,21 @@ extension OID {
         }
     }
 }
+
+extension OID {
+    init(copying oid: UnsafePointer<git_oid>!) throws {
+        let pointer = UnsafeMutablePointer<git_oid>.allocate(capacity: 1)
+        defer { pointer.deallocate() }
+
+        let result = git_oid_cpy(pointer, oid)
+
+        switch result {
+        case GIT_OK.rawValue:
+            self.oid = pointer.pointee
+
+        default:
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_oid_fromstr")
+        }
+    }
+}
+
