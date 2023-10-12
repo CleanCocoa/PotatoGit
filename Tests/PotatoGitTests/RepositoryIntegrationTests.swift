@@ -23,19 +23,19 @@ final class RepositoryIntegrationTests: XCTestCase {
     }
 
     func testCloningPotatoGitRepository() throws {
-        XCTAssertFalse(try Repository.exists(at: localURL).get())
-        XCTAssertThrowsError(try Repository.open(at: localURL).get())
+        XCTAssertFalse(try Repository.exists(at: localURL))
+        XCTAssertThrowsError(try Repository.open(at: localURL))
 
-        XCTAssertNoThrow(try Repository.clone(from: remoteURL, to: localURL).get())
+        XCTAssertNoThrow(try Repository.clone(from: remoteURL, to: localURL))
 
-        XCTAssertTrue(try Repository.exists(at: localURL).get())
-        XCTAssertNoThrow(try Repository.open(at: localURL).get())
+        XCTAssertTrue(try Repository.exists(at: localURL))
+        XCTAssertNoThrow(try Repository.open(at: localURL))
     }
 
     func testForceCheckout() throws {
-        let repository = try Repository.clone(from: remoteURL, to: localURL).get()
-        let origin = try XCTUnwrap(repository.remote(named: "origin").get())
-        let remoteMainBranch = try XCTUnwrap(origin.branch(named: "main").get())
+        let repository = try Repository.clone(from: remoteURL, to: localURL)
+        let origin = try XCTUnwrap(repository.remote(named: "origin"))
+        let remoteMainBranch = try XCTUnwrap(origin.branch(named: "main"))
 
         // Delete the LICENSE file to make the repo dirty.
         let licenseFileURL = localURL.appending(path: "LICENSE")
@@ -53,14 +53,14 @@ final class RepositoryIntegrationTests: XCTestCase {
     }
 
     func testRemoteTrackingBranchIsOutdated() throws {
-        let repository = try Repository.clone(from: remoteURL, to: localURL).get()
-        let mainBranch = try XCTUnwrap(repository.branch(named: "main").get())
+        let repository = try Repository.clone(from: remoteURL, to: localURL)
+        let mainBranch = try XCTUnwrap(repository.branch(named: "main"))
 
-        XCTAssertFalse(try mainBranch.isOutdated().get())
+        XCTAssertFalse(try mainBranch.isOutdated())
 
         try repository.checkout(commit: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
         try mainBranch.reset(to: "7dcff510c4a8e4aeda68212ac4cc776db998175e")
 
-        XCTAssertTrue(try mainBranch.isOutdated().get())
+        XCTAssertTrue(try mainBranch.isOutdated())
     }
 }

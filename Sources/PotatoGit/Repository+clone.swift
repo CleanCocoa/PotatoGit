@@ -7,7 +7,7 @@ extension Repository {
         to localURL: URL,
         bare: Bool = false,
         checkoutStrategy: CheckoutStrategy = .safe
-    ) -> Result<Repository, PotatoGitError> {
+    ) throws -> Repository {
         git_libgit2_init()
         defer { git_libgit2_shutdown() }
 
@@ -24,9 +24,10 @@ extension Repository {
         }
 
         guard result == GIT_OK.rawValue else {
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_clone"))
+            precondition(pointer == nil, "Did not expect pointer to be allocated for non-success case")
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_clone")
         }
 
-        return .success(Repository(repositoryPtr: pointer!))
+        return Repository(repositoryPtr: pointer!)
     }
 }

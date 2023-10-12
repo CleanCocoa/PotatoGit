@@ -7,7 +7,7 @@ extension Repository {
     /// - Returns: The opened ``Repository`` or an error.
     public static func open(
         at localURL: URL
-    ) -> Result<Repository, PotatoGitError> {
+    ) throws -> Repository{
         git_libgit2_init()
         defer { git_libgit2_shutdown() }
 
@@ -17,9 +17,10 @@ extension Repository {
         }
 
         guard result == GIT_OK.rawValue else {
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_repository_open"))
+            precondition(pointer == nil, "Did not expect pointer to be allocated for non-success case")
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_repository_open")
         }
 
-        return .success(Repository(repositoryPtr: pointer!))
+        return Repository(repositoryPtr: pointer!)
     }
 }

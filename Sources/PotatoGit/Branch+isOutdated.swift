@@ -4,47 +4,42 @@ import Foundation
 extension Branch {
     public func isOutdated(
         comparedAgainst referenceBranch: Branch
-    )  -> Result<Bool, PotatoGitError> {
-        return self.tip.flatMap { localTip in
-            guard let localTip else { return .success(false) }
+    ) throws -> Bool {
+        guard let localTip = try self.tip(),
+              let upstreamTip = try referenceBranch.tip()
+        else { return false }
 
-            return referenceBranch.tip.flatMap { upstreamTip in
-                guard let upstreamTip else { return .success(false) }
+        var ahead = 0
+        var behind = 0
 
-                var ahead = 0
-                var behind = 0
-
-                let result = withUnsafePointer(to: localTip.oid) { localTipOIDPtr in
-                    withUnsafePointer(to: upstreamTip.oid) { upstreamTipOIDPtr in
-                        git_graph_ahead_behind(
-                            &ahead,
-                            &behind,
-                            self.repository.repositoryPtr,
-                            localTipOIDPtr,
-                            upstreamTipOIDPtr
-                        )
-                    }
-                }
-
-                switch result {
-                case GIT_OK.rawValue:
-                    return .success(behind != 0)
-
-                default:
-                    return .failure(.unexpected(gitError: result, pointOfFailure: "git_graph_ahead_behind"))
-                }
+        let result = withUnsafePointer(to: localTip.oid) { localTipOIDPtr in
+            withUnsafePointer(to: upstreamTip.oid) { upstreamTipOIDPtr in
+                git_graph_ahead_behind(
+                    &ahead,
+                    &behind,
+                    self.repository.repositoryPtr,
+                    localTipOIDPtr,
+                    upstreamTipOIDPtr
+                )
             }
         }
-    }
 
-    public func isOutdated() -> Result<Bool, PotatoGitError> {
-        return self.upstream.flatMap { upstream in
-            guard let upstream else { return .success(false) }
-            return isOutdated(comparedAgainst: upstream)
+        switch result {
+        case GIT_OK.rawValue:
+            return behind != 0
+
+        default:
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_graph_ahead_behind")
         }
     }
 
-    var tip: Result<OID?, PotatoGitError> {
+    public func isOutdated() throws -> Bool {
+        guard let upstream = try self.upstream()
+        else { return false }
+        return try isOutdated(comparedAgainst: upstream)
+    }
+
+    fileprivate func tip() throws -> OID? {
         var pointer: OpaquePointer?
         defer { if let pointer { git_object_free(pointer) } }
 
@@ -56,38 +51,35 @@ extension Branch {
 
         switch result {
         case GIT_OK.rawValue:
-            do {
-                // FIXME: Is copy constructor needed, or can we just keep the returned git_oid because it's a value type anyway?
-                return .success(try OID(copying: git_commit_id(pointer)))
-            } catch {
-                return .failure(.unexpected(error as NSError))
-            }
+            // FIXME: Is copy constructor needed, or can we just keep the returned git_oid because it's a value type anyway?
+            return try OID(copying: git_commit_id(pointer))
 
         case GIT_ENOTFOUND.rawValue:
-            return .success(nil)
+            precondition(pointer == nil, "Did not expect pointer to be allocated for non-success case")
+            return nil
 
         default:
             precondition(pointer == nil, "Did not expect pointer to be allocated for non-success case")
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_branch_upstream"))
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_branch_upstream")
         }
     }
 
-    var upstream: Result<Branch?, PotatoGitError> {
+    fileprivate func upstream() throws -> Branch? {
         var upstreamBranchPtr: OpaquePointer?
 
         let result = git_branch_upstream(&upstreamBranchPtr, self.branchPtr)
 
         switch result {
         case GIT_OK.rawValue:
-            return .success(Branch(branchPtr: upstreamBranchPtr!, repository: self.repository))
+            return Branch(branchPtr: upstreamBranchPtr!, repository: self.repository)
 
         case GIT_ENOTFOUND.rawValue:
             precondition(upstreamBranchPtr == nil, "Did not expect pointer to be allocated for non-success case")
-            return .success(nil)
+            return nil
 
         default:
             precondition(upstreamBranchPtr == nil, "Did not expect pointer to be allocated for non-success case")
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_branch_upstream"))
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_branch_upstream")
         }
     }
 }

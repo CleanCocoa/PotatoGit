@@ -4,7 +4,7 @@ extension Repository {
     public func branch(
         named branchName: String,
         local: Bool = true
-    ) -> Result<Branch?, PotatoGitError> {
+    ) throws -> Branch? {
         let referenceName = "refs/\(local ? "heads" : "remotes")/\(branchName)"
 
         var branchPtr: OpaquePointer? = nil
@@ -13,15 +13,15 @@ extension Repository {
 
         switch result {
         case GIT_OK.rawValue:
-            return .success(Branch(branchPtr: branchPtr!, repository: self))
+            return Branch(branchPtr: branchPtr!, repository: self)
 
         case GIT_ENOTFOUND.rawValue:
             precondition(branchPtr == nil, "Did not expect pointer to be allocated for non-success case")
-            return .success(nil)
+            return nil
 
         default:
             precondition(branchPtr == nil, "Did not expect pointer to be allocated for non-success case")
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_reference_lookup"))
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_reference_lookup")
         }
     }
 }

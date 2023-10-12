@@ -2,7 +2,7 @@ import Foundation
 import Clibgit2
 
 extension Repository {
-    public static func exists(at url: URL) -> Result<Bool, PotatoGitError> {
+    public static func exists(at url: URL) throws -> Bool {
         git_libgit2_init()
         defer { git_libgit2_shutdown() }
 
@@ -14,11 +14,13 @@ extension Repository {
 
         switch result {
         case GIT_ENOTFOUND.rawValue:
-            return .success(false)
+            return false
+
         case GIT_OK.rawValue:
-            return .success(true)
+            return true
+
         default:
-            return .failure(.unexpected(gitError: result, pointOfFailure: "git_repository_open_ext"))
+            throw PotatoGitError.unexpected(gitError: result, pointOfFailure: "git_repository_open_ext")
         }
     }
 }
