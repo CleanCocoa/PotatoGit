@@ -1,6 +1,17 @@
 import XCTest
 import PotatoGit
 
+extension URL {
+    fileprivate var canonicalPathComponents: [String] {
+        var components = self.resolvingSymlinksInPath().pathComponents
+        // E.g. `/private/var` and `/var` are treated equally
+        if components.count > 0 && components[1] == "private" {
+            components.remove(at: 1)
+        }
+        return components
+    }
+}
+
 final class RepositoryIntegrationTests: XCTestCase {
     let localURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("de.christiantietze.potatogit")
@@ -16,20 +27,28 @@ final class RepositoryIntegrationTests: XCTestCase {
     override func setUpWithError() throws {
         try removeLocalRepositoryFolderIfNeeded()
         try FileManager.default.createDirectory(at: localURL, withIntermediateDirectories: true)
+
+        // Preconditions
+        XCTAssertFalse(try Repository.exists(at: localURL))
     }
 
     override func tearDownWithError() throws {
         try removeLocalRepositoryFolderIfNeeded()
     }
 
-    func testCloningPotatoGitRepository() throws {
-        XCTAssertFalse(try Repository.exists(at: localURL))
-        XCTAssertThrowsError(try Repository.open(at: localURL))
-
-        XCTAssertNoThrow(try Repository.clone(from: remoteURL, to: localURL))
+    func testCloningSetsDirectoryURL() throws {
+        let repo = try Repository.clone(from: remoteURL, to: localURL)
 
         XCTAssertTrue(try Repository.exists(at: localURL))
-        XCTAssertNoThrow(try Repository.open(at: localURL))
+        XCTAssertEqual(repo.directoryURL?.canonicalPathComponents, localURL.canonicalPathComponents)
+    }
+
+    func testOpeningClonedGitRepositorySetsDirectoryURL() throws {
+        XCTAssertNoThrow(try Repository.clone(from: remoteURL, to: localURL))
+
+        let repo = try Repository.open(at: localURL)
+
+        XCTAssertEqual(repo.directoryURL?.canonicalPathComponents, localURL.canonicalPathComponents)
     }
 
     func testForceCheckout() throws {
